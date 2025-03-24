@@ -1,0 +1,625 @@
+{% extends "Base.twig" %}
+
+{% block main %}
+
+    <div class="container-fluid text-center">
+
+        <!-- Title -->
+        <div class="row">
+            <div class="col-12 h2 p-5">
+                Interface d'édition
+            </div>
+        </div>
+
+        <!-- Edit options -->
+        <div class="row">            
+            <!-- Edit Pages -->
+            <div class="col-4">
+                <div class="card m-2">
+                    {% if listPages is defined %}
+                        {% set isSelectedPages = true %}
+                    {% endif %}
+                    <div class="card-body {% if isSelectedPages %} bg-primary-subtle {% else %} bg-body-tertiary {% endif %}">
+                        <h5><a class="link-dark link-underline-opacity-0 link-underline-opacity-75-hover" href="index.php?controller=edit&action=editPage">Éditer les pages</a></h5>
+                    </div>
+                </div>
+            </div> 
+            <!-- Edit Contents -->           
+            <div class="col-4">
+                <div class="card m-2">
+                    {% if listContents is defined %}
+                        {% set isSelectedContents = true %}
+                    {% endif %}
+                    <div class="card-body {% if isSelectedContents %} bg-primary-subtle {% else %} bg-body-tertiary {% endif %}">
+                        <h5><a class="link-dark link-underline-opacity-0 link-underline-opacity-75-hover" href="index.php?controller=edit&action=editContent">Éditer les contenus</a></h5>
+                    </div>
+                </div>
+            </div> 
+            <!-- Edit Navigation -->           
+            <div class="col-4">
+                <div class="card m-2">
+                    {% if listNavigations is defined %}
+                        {% set isSelectedNav = true %}
+                    {% endif %}
+                    <div class="card-body {% if isSelectedNav %} bg-primary-subtle {% else %} bg-body-tertiary {% endif %}">
+                        <h5><a class="link-dark link-underline-opacity-0 link-underline-opacity-75-hover" href="index.php?controller=edit&action=editNav">Éditer la navigation</a></h5>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        {% if listPages is defined %}
+            {% include "EditPages.twig" with {'listPages': listPages} %}
+        {% endif %}      
+
+        <!-- Page selection for editing -->
+        {% if x is defined %}
+            <div class="row text-start mt-3">
+                <div class="col-4 p-2">
+                    <h5 class="p-2">Selectionnez la page à modifier</h5>
+
+                    <!-- List of Pages -->
+                    <ul class="list-group">
+                        {% for page in listPages %}
+                            {% set isSelected = (selectedPage is defined and selectedPage.id == page.id) %}
+                            <li class="list-group-item {% if isSelected %} selected{% endif %}"><a class="link-dark link-underline-opacity-0 link-underline-opacity-75-hover" href="index.php?controller=edit&action=updatePage&pageId={{ page.getId }}">{{ page.getPageName }}</a></li>
+                        {% endfor %}
+                        <!-- Option to create a new page -->
+                        {% if createPage is defined %}
+                            {% set isSelected = true %}
+                        {% endif %}
+                        <li class="list-group-item {% if isSelected %} selected {% else %} bg-body-tertiary {% endif %}"><a class="link-dark link-underline-opacity-0 link-underline-opacity-75-hover" href="index.php?controller=edit&action=createPage">Créer une nouvelle page</a></li>
+                    </ul>
+                </div>
+
+                {% if selectedPage is defined %}
+                    <!-- Form for editing selected page -->
+                    <div class="col-6 p-2">
+                        <!-- Title displaying the name of the selected page -->
+                        <h5 class="p-2">Modifier {{ selectedPage.getPageName }}</h5>
+                        <!-- Display message if defined -->
+                        {% if message is defined %}                        
+                        <div class="alert alert-{{ message.type }} alert-dismissible fade show" role="alert">
+                            {{ message.message }}
+                        </div>                        
+                        {% endif %}
+                        <!-- Form for updating page -->
+                        <form class="row ps-2 g-3" action="index.php" method="post">
+                            {% if selectedPage.getId is defined %}
+                                <!-- Set action based on whether page ID is defined -->
+                                {% set action = 'updatePageValid' %}
+                                <!-- Hidden input field for page ID -->
+                                <input type="hidden" value="{{ selectedPage.getId }}" name="id">
+                            {% endif %}
+                            <!-- Hidden input fields for controller and action -->
+                            <input type="hidden" value="edit" name="controller">
+                            <input type="hidden" value="{{ action }}" name="action">
+                            <!-- Input field for page name -->
+                            <div class="col-md-6">
+                                <label for="pageNameId" class="form-label">Nom de la page</label>
+                                <input type="text" class="form-control" id="pageNameId" name="pageName" value="{{ selectedPage.getPageName }}" required>
+                            </div>
+                            <!-- Dropdown for selecting if the page is the homepage -->
+                            <div class="col-md-4">
+                                <label for="isHomePageId" class="form-label">Page d'accueil</label>
+                                <select class="form-select" id="isHomePageId" name="stringIsHomePage" required>
+                                    <option selected>{% if selectedPage.getIsHomePage == 1 %}Oui{% else %}Non{% endif %}</option>
+                                    {% if selectedPage.getIsHomePage == 1 %}
+                                        <option>Non</option>
+                                    {% else %}
+                                        <option>Oui</option>
+                                    {% endif %}
+                                </select>
+                            </div>
+                            <!-- Information about the page -->
+                            <div class="col-12">
+                                <!-- Display creation and modification dates, and the user who last modified the page -->
+                                <p class="text-secondary">Page créée le {{ selectedPage.getCreationDate }}</p>
+                                <p class="text-secondary">Dernière modification le {{ selectedPage.getModificationDate }} par l'utilisateur {{ selectedPage.getIdUser }}</p>
+                                <!-- Display whether the page is published or not -->
+                                {% if selectedPage.getIsPublished == 1 %}
+                                    <p class="text-success">Page publiée</p>
+                                {% else %}
+                                    <p class="text-danger">Page non publiée</p>
+                                {% endif %}
+                                <!-- Checkbox for publishing the page -->
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="toPublishId" name="toPublish" {% if selectedPage.getIsPublished == 1 %} checked {% endif %}>
+                                    <label class="form-check-label" for="toPublishId">
+                                        Publier la page modifiée
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- Submit button for updating the page -->
+                            <div class="col-12">
+                                <button class="btn btn-secondary" type="submit">Modifier</button>
+                            </div>
+                        </form>
+                        <!-- Form for deleting the selected page -->
+                        <form class="row p-2 g-3" action="index.php" method="post">
+                            <!-- Hidden input fields for controller, action, and page ID -->
+                            <input type="hidden" value="edit" name="controller">
+                            <input type="hidden" value="deletePage" name="action">
+                            <input type="hidden" value="{{ selectedPage.getId }}" name="id">
+                            <!-- Button for deleting the page with confirmation -->
+                            <div class="col-12">
+                                <button class="btn btn-danger" type="submit" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette page ?')">Supprimer</button>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+
+                {% if createPage is defined %}
+                    <!-- Form for creating a new page -->
+                    <div class="col-6 p-2">
+                        <!-- Title for creating a new page -->
+                        <h5 class="p-2">Créer une nouvelle page</h5>
+                        <!-- Display message if defined -->
+                        {% if message is defined %}                        
+                        <div class="alert alert-{{ message.type }} alert-dismissible fade show" role="alert">
+                            {{ message.message }}
+                        </div>
+                        {% endif %}
+                        <!-- Form for creating a new page -->
+                        <form class="row ps-2 g-3" action="index.php" method="post">
+                            {% set action = 'createPageValid' %}
+                            <!-- Hidden input fields for controller and action -->
+                            <input type="hidden" value="edit" name="controller">
+                            <input type="hidden" value="{{ action }}" name="action">
+                            <!-- Input field for page name -->
+                            <div class="col-md-6">
+                                <label for="pageNameId" class="form-label">Nom de la page</label>
+                                <input type="text" class="form-control" id="pageNameId" name="pageName" value="" required>
+                            </div>
+                            <!-- Dropdown for selecting if the page is the homepage -->
+                            <div class="col-md-4">
+                                <label for="isHomePageId" class="form-label">Page d'accueil</label>
+                                <select class="form-select" id="isHomePageId" name="stringIsHomePage" required>
+                                    <option selected>Non</option>
+                                    <option>Oui</option>
+                                </select>
+                            </div>
+                            <!-- Checkbox for publishing the page -->
+                            <div class="col-12">                           
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="toPublishId" name="toPublish">
+                                    <label class="form-check-label" for="toPublishId">
+                                        Publier la page créée
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- Submit button for creating the page -->
+                            <div class="col-12">
+                                <button class="btn btn-secondary" type="submit">Créer</button>
+                            </div>
+                        </form>  
+                    </div>
+                {% endif %}
+                
+            </div>
+        {% endif %}
+
+        {% if listContents is defined %}
+            <!-- Display list of contents -->
+            <div class="row text-start mt-3">
+                <!-- Column for selecting content to edit -->
+                <div class="col-4 p-2">
+                    <!-- Title for selecting content -->
+                    <h5 class="p-2">Selectionnez le contenu à modifier</h5>
+                    <ul class="list-group">
+                        <!-- Loop through contents -->
+                        {% for content in listContents %}
+                            <!-- Check if content is selected -->
+                            {% set isSelected = (selectedContent is defined and selectedContent.id == content.id) %}
+                            <!-- List item for each content -->
+                            <li class="list-group-item {% if isSelected %} selected{% endif %}"><a class="link-dark link-underline-opacity-0 link-underline-opacity-75-hover" href="index.php?controller=edit&action=updateContent&contentId={{ content.getId }}">{{ content.getContentName }}</a></li>
+                        {% endfor %}
+                        <!-- Check if creating new content -->
+                        {% if createContent is defined %}
+                            {% set isSelected = true %}
+                        {% endif %}
+                        <!-- List item for creating new content -->
+                        <li class="list-group-item {% if isSelected %} selected {% else %} bg-body-tertiary {% endif %}"><a class="link-dark link-underline-opacity-0 link-underline-opacity-75-hover" href="index.php?controller=edit&action=createContent">Créer un nouveau contenu</a></li>
+                    </ul>
+                </div>
+
+                <!-- Display form for updating selected content -->
+                {% if selectedContent is defined %}
+                    <div class="col-8 p-2">
+                        <!-- Title for updating selected content -->
+                        <h5 class="p-2">Modifier {{ selectedContent.getContentName }}</h5>
+                        <!-- Display message if defined -->
+                        {% if message is defined %}                        
+                        <div class="alert alert-{{ message.type }} alert-dismissible fade show" role="alert">
+                            {{ message.message }}
+                        </div>                        
+                        {% endif %}
+                        <!-- Form for updating content -->
+                        <form class="row ps-2 g-3" action="index.php" method="post" enctype="multipart/form-data">
+                        {% if selectedContent.getId is defined %}
+                            {% set action = 'updateContentValid' %}
+                            <!-- Hidden input field for content ID -->
+                            <input type="hidden" value="{{ selectedContent.getId }}" name="id">
+                        {% endif %}
+                        <!-- Hidden input fields for controller and action -->
+                        <input type="hidden" value="edit" name="controller">
+                        <input type="hidden" value="{{ action }}" name="action">
+                        <!-- Input field for content name -->
+                        <div class="col-md-4">
+                            <label for="contentNameId" class="form-label">Nom du contenu</label>
+                            <input type="text" class="form-control" id="contentNameId" name="contentName" value="{{ selectedContent.getContentName }}" required>
+                        </div>
+                        <!-- Input field for content description -->
+                        <div class="col-md-12">
+                            <label for="contentDescriptionId" class="form-label">Le contenu</label>
+                            <textarea rows="10" class="form-control" id="contentDescriptionId" name="contentDescription" value="{{ selectedContent.getContentDescription }}" required></textarea>
+                        </div>
+                        <!-- Dropdown for selecting content type -->
+                        <div class="col-md-12">
+                            <label for="contentTypeId" class="form-label">Type de contenu</label>
+                            <select class="form-select" id="contentTypeId" name="contentType" required>
+                                <!-- Option for selected content type -->
+                                <option value="{{ selectedContent.getContentType.getId }}" selected>
+                                    {{ selectedContent.getContentType.getContentTypeName }} : {{ selectedContent.getContentType.getContentTypeDescription }}
+                                </option>
+                                {% set imgForm = false %}
+                                <!-- Loop through content types -->
+                                {% for contentType in listContentTypes %}
+                                    {% if selectedContent.getContentType.getId != contentType.getId %}                                    
+                                        {% if contentType.getId == 3 %}
+                                            <!-- Option for image content type -->
+                                            <option value="{{ contentType.getId }}">
+                                                {{ contentType.getContentTypeName }} : {{ contentType.getContentTypeDescription }}
+                                            </option>
+                                            {% set imgForm = true %}
+                                        {% else %}
+                                            <!-- Option for other content types -->
+                                            <option value="{{ contentType.getId }}">
+                                                {{ contentType.getContentTypeName }} : {{ contentType.getContentTypeDescription }}
+                                            </option>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Form for uploading image (if applicable) -->
+                        {# {% if imgForm == true %} #}
+                            <div class="mb-3">
+                                <label for="formFile" class="form-label">Choisir une <strong>image</strong> au format jpg, jpeg ou png et ne dépassant pas 128Ko</label>
+                                <input class="form-control" type="file" id="formFile" name="img">
+                            </div>
+                        {# {% endif %} #}
+
+                        <!-- Dropdown for selecting position of content -->
+                        <div class="col-md-12">
+                            <label for="positionId" class="form-label">Position dans la page</label>
+                            <p class="text-secondary fst-italic mb-1"><small>Les contenus seront positionnés les uns à la suite des autres(contenu position 2 en dessous du contenu position 1, etc.)</small></p>
+                            <select class="form-select" id="positionId" name="position">
+                                <!-- Option for selected position -->
+                                {% if selectedContent.position.id is defined %}
+                                    <option value="{{ selectedContent.getPosition.getId }}" selected>{{ selectedContent.getPosition.getPositionNumber }} : {{ selectedContent.getPosition.getPage.getPageName }}</option>
+                                {% else %}
+                                        <option selected disabled hidden value="">...</option>
+                                {% endif %}
+                                
+                                <!-- Loop through positions -->
+                                {% for position in listPositions %}
+                                    {% if position.getId != selectedContent.getPosition.getId %}
+                                        <option value="{{ position.getId }}">{{ position.getPositionNumber }} : {{ position.getPage.getPageName }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Display content information -->
+                        <div class="col-12">
+                            <p class="text-secondary">Contenu créé le {{ selectedContent.getCreationDate }}</p>
+                            <p class="text-secondary">Dernière modification le {{ selectedContent.getModificationDate }} par l'utilisateur {{ selectedContent.getIdUser }}</p>
+                            <!-- Display content publication status -->
+                            {% if selectedContent.getIsPublished == 1 %}
+                                <p class="text-success">Contenu publié</p>
+                            {% else %}
+                                <p class="text-danger">Contenu non publié</p>
+                            {% endif %}
+                            <!-- Checkbox for publishing updated content -->
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="toPublishId" name="toPublish" {% if selectedContent.getIsPublished == 1 %} checked {% endif %}>
+                                <label class="form-check-label" for="toPublishId">
+                                    Publier le contenu modifié
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Submit button for updating content -->
+                        <div class="col-12">
+                            <button class="btn btn-secondary" type="submit">Modifier</button>
+                        </div>
+                        </form>
+                        <!-- Form for deleting selected content -->
+                        <form class="row p-2 g-3" action="index.php" method="post">
+                            <!-- Hidden input fields for controller, action, and content ID -->
+                            <input type="hidden" value="edit" name="controller">
+                            <input type="hidden" value="deleteContent" name="action">
+                            <input type="hidden" value="{{ selectedContent.getId }}" name="id">
+                            <!-- Button for submitting deletion request with confirmation dialog -->
+                            <div class="col-12">
+                                <button class="btn btn-danger" type="submit" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce contenu ?')">Supprimer</button>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+
+                {% if createContent is defined %}
+                    <!-- Display form for creating a new content -->
+                    <div class="col-8 p-2">
+                        <!-- Title for the content creation section -->
+                        <h5 class="p-2">Créer un nouveau contenu</h5>
+                        <!-- Display message if defined -->
+                        {% if message is defined %}                        
+                        <div class="alert alert-{{ message.type }} alert-dismissible fade show" role="alert">
+                            {{ message.message }}
+                        </div>                        
+                        {% endif %}
+                        <!-- Form for creating a new content -->
+                        <form class="row ps-2 g-3" action="index.php" method="post">
+                            {% set action = 'createContentValid' %}
+                            <!-- Hidden input fields for controller and action -->
+                            <input type="hidden" value="edit" name="controller">
+                            <input type="hidden" value="{{ action }}" name="action">
+                            <!-- Input field for content name -->
+                            <div class="col-md-4">
+                                <label for="contentNameId" class="form-label">Nom du contenu</label>
+                                <input type="text" class="form-control" id="contentNameId" name="contentName" value="" required>
+                            </div>
+                            <!-- Input field for content description -->
+                            <div class="col-md-8">
+                                <label for="contentDescriptionId" class="form-label">Le contenu</label>
+                                <textarea type="text" class="form-control" id="contentDescriptionId" name="contentDescription" value="" required></textarea>
+                            </div>
+                            <!-- Dropdown menu for selecting content type -->
+                            <div class="col-md-12">
+                                <label for="contentTypeId" class="form-label">Type de contenu</label>
+                                <select class="form-select" id="contentTypeId" name="contentType" required>
+                                    {% for contentType in listContentTypes %}
+                                        {% if contentType.getId == 4 %}
+                                            <option value="{{ contentType.getId }}" selected>{{ contentType.getContentTypeName }} : {{ contentType.getContentTypeDescription }}</option>
+                                        {% else %}                                        
+                                            <option value="{{ contentType.getId }}">{{ contentType.getContentTypeName }} : {{ contentType.getContentTypeDescription }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <!-- Dropdown menu for selecting content position -->
+                            <div class="col-md-12">
+                                <label for="positionId" class="form-label">Position dans la page</label>
+                                <select class="form-select" id="positionId" name="position">
+                                    <option selected disabled hidden value="">...</option>                              
+                                    {% for position in listPositions %}
+                                        <option value="{{ position.getId }}">{{ position.getPositionNumber }} : {{ position.getPage.getPageName }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <!-- Checkbox for publishing the created content -->
+                            <div class="col-12">                            
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="toPublishId" name="toPublish">
+                                    <label class="form-check-label" for="toPublishId">
+                                        Publier le contenu créé
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- Submit button for creating the content -->
+                            <div class="col-12">
+                                <button class="btn btn-secondary" type="submit">Créer</button>
+                            </div>
+                        </form>  
+                    </div>
+                {% endif %}
+
+            </div>
+        {% endif %}
+
+        {% if listNavigations is defined %}
+            <!-- Start of row for displaying navigations -->
+            <div class="row text-start mt-3">
+                <!-- Column for displaying navigation list -->
+                <div class="col-4 p-2">
+                    <!-- Title for navigation selection -->
+                    <h5 class="p-2">Selectionnez la navigation à modifier</h5>
+                    <!-- Unordered list for navigation items -->
+                    <ul class="list-group">
+                        <!-- Loop through each navigation -->
+                        {% for navigation in listNavigations %}
+                            <!-- Check if the navigation is selected -->
+                            {% set isSelected = (selectedNav is defined and selectedNav.id == navigation.id) %}
+                            <!-- List item for navigation selection -->
+                            <li class="list-group-item {% if isSelected %} selected{% endif %}">
+                                <!-- Link to edit the navigation -->
+                                <a class="link-dark link-underline-opacity-0 link-underline-opacity-75-hover" href="index.php?controller=edit&action=updateNav&navId={{ navigation.getId }}">{{ navigation.getNavName }}</a>
+                            </li>
+                        {% endfor %}
+                        <!-- Check if creating a new navigation is defined -->
+                        {% if createNav is defined %}
+                            {% set isSelected = true %}
+                        {% endif %}
+                        <!-- List item for creating a new navigation -->
+                        <li class="list-group-item {% if isSelected %} selected {% else %} bg-body-tertiary {% endif %}">
+                            <!-- Link to create a new navigation -->
+                            <a class="link-dark link-underline-opacity-0 link-underline-opacity-75-hover" href="index.php?controller=edit&action=createNav">Créer une nouvelle navigation</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Check if a navigation is selected -->
+                {% if selectedNav is defined %}
+                    <!-- Column for displaying selected navigation details -->
+                    <div class="col-8 p-2">
+                        <!-- Title for editing the selected navigation -->
+                        <h5 class="p-2">Modifier {{ selectedNav.getNavName }}</h5>
+                        <!-- Check if there is a defined message -->
+                        {% if message is defined %}                        
+                        <div class="alert alert-{{ message.type }} alert-dismissible fade show" role="alert">
+                            <!-- Display message -->
+                            {{ message.message }}
+                        </div>                        
+                        {% endif %}
+                        <!-- Form for editing the navigation -->
+                        <form class="row ps-2 g-3 align-items-center" action="index.php" method="post">
+                            <!-- Check if the selected navigation has an ID -->
+                            {% if selectedNav.getId is defined %}
+                                <!-- Set action for updating the navigation -->
+                                {% set action = 'updateNavValid' %}
+                                <!-- Hidden input field for navigation ID -->
+                                <input type="hidden" value="{{ selectedNav.getId }}" name="id">
+                            {% endif %}
+                            <!-- Hidden input fields for controller and action -->
+                            <input type="hidden" value="edit" name="controller">
+                            <input type="hidden" value="{{ action }}" name="action">
+                            
+                            <!-- Input field for navigation name -->
+                            <div class="col-md-6">
+                                <label for="navNameId" class="form-label mb-0">Nom de la navigation</label>
+                                <p class="text-secondary fst-italic mb-1">De préférence, se rapportant au nom de la page qu'elle lie.</p>
+                                <input type="text" class="form-control" id="navNameId" name="navName" value="{{ selectedNav.getNavName }}" required>
+                            </div>
+                            
+                            <!--
+                            <div class="col-md-6 align-item-center">
+                                <label for="positionId" class="form-label mb-0">Position dans le page</label>
+                                <p class="text-secondary fst-italic mb-1">Position identique pour toutes les navigations réunies en menu.</p>
+                                <select class="form-select" id="positionId" name="position">
+                                    
+                                </select>
+                            </div>
+                            -->
+                            
+                            <!-- Selection of the page linked by the navigation -->
+                            <div class="col-md-12">
+                                <label for="navPageId" class="form-label">Page liée par la navigation</label>
+                                <!-- Dropdown menu for selecting page -->
+                                <select class="form-select" id="navPageId" name="navPage" required>
+                                    <option value="{{ selectedNav.getPage.getId }}" selected>
+                                        {{ selectedNav.getPage.getId }} : {{ selectedNav.getPage.getPageName }} | {% if selectedNav.getPage.getIsHomePage == 1 %}Page d'accueil{% else %}Page annexe{% endif %} | {% if selectedNav.getPage.getIsPublished == 1 %}Publiée{% else %}Non Publiée{% endif %}
+                                    </option>
+                                    <!-- Loop through each page for selection -->
+                                    {% for navPage in listNavPages %}
+                                        {% if navPage.getId != selectedNav.getPage.getId %}
+                                            <option value="{{ navPage.getId }}">
+                                                {{ navPage.getId }} : {{ navPage.getPageName }} | {% if navPage.getIsHomePage == 1 %}Page d'accueil{% else %}Page annexe{% endif %} | {% if navPage.getIsPublished == 1 %}Publiée{% else %}Non Publiée{% endif %}
+                                            </option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <!-- Display navigation details -->
+                            <div class="col-12">
+                                <p class="text-secondary">Navigation créée le {{ selectedNav.getCreationDate }}</p>
+                                <p class="text-secondary">Dernière modification le {{ selectedNav.getModificationDate }} par l'utilisateur {{ selectedNav.getIdUser }}</p>
+                                {% if selectedNav.getIsPublished == 1 %}
+                                    <p class="text-success">Navigation publiée</p>
+                                {% else %}
+                                    <p class="text-danger">Navigation non publiée</p>
+                                {% endif %}                                
+                                
+                                <!-- Checkbox for publishing the modified navigation -->
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="toPublishId" name="toPublish" {% if selectedNav.getIsPublished == 1 %} checked {% endif %}>
+                                    <label class="form-check-label" for="toPublishId">
+                                        Publier la navigation modifiée
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Submit button -->
+                            <div class="col-12">
+                                <button class="btn btn-secondary" type="submit">Modifier</button>
+                            </div>
+                        </form>
+                        <!-- Form for deleting the navigation -->
+                        <form class="row p-2 g-3" action="index.php" method="post">
+                            <!-- Hidden input fields for controller, action, and navigation ID -->
+                            <input type="hidden" value="edit" name="controller">
+                            <input type="hidden" value="deleteNav" name="action">
+                            <input type="hidden" value="{{ selectedNav.getId }}" name="id">
+                            <!-- Submit button -->
+                            <div class="col-12">
+                                <button class="btn btn-danger" type="submit" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette nevigation ?')">Supprimer</button>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+
+                <!-- Check if creating a new navigation is defined -->
+                {% if createNav is defined %}
+                    <div class="col-8 p-2">
+                        <h5 class="p-2">Créer une nouvelle navigation</h5>
+                        <!-- Check if there is a defined message -->
+                        {% if message is defined %}                        
+                        <div class="alert alert-{{ message.type }} alert-dismissible fade show" role="alert">
+                            {{ message.message }}
+                        </div>                        
+                        {% endif %}
+                        <!-- Form for creating a new navigation -->
+                        <form class="row ps-2 g-3 align-items-center" action="index.php" method="post">
+                            <!-- Set action for creating a new navigation -->
+                            {% set action = 'createNavValid' %}                            
+                            <!-- Hidden input field for controller and action -->
+                            <input type="hidden" value="edit" name="controller">
+                            <input type="hidden" value="{{ action }}" name="action">
+                            
+                            <!-- Input field for navigation name -->
+                            <div class="col-md-6">
+                                <label for="navNameId" class="form-label mb-0">Nom de la navigation</label>
+                                <p class="text-secondary fst-italic mb-1">De préférence, se rapportant au nom de la page qu'elle lie.</p>
+                                <input type="text" class="form-control" id="navNameId" name="navName" value="" required>
+                            </div>
+
+                            <!--
+                            <div class="col-md-6 align-item-center">
+                                <label for="positionId" class="form-label mb-0">Position dans le page</label>
+                                <p class="text-secondary fst-italic mb-1">Position identique pour toutes les navigations réunies en menu.</p>
+                                <select class="form-select" id="positionId" name="position">
+                                    
+                                </select>
+                            </div>
+                            -->
+
+                            <!-- Selection of the page linked by the navigation -->
+                            <div class="col-md-12">
+                                <label for="navPageId" class="form-label">Page liée par la navigation</label>
+                                <!-- Dropdown menu for selecting page -->
+                                <select class="form-select" id="navPageId" name="navPage" required>
+                                    <!-- Loop through each page for selection -->
+                                    {% for navPage in listNavPages %}                                                                   
+                                            <option value="{{ navPage.getId }}">
+                                                {{ navPage.getId }} : {{ navPage.getPageName }} | {% if navPage.getIsHomePage == 1 %}Page d'accueil{% else %}Page annexe{% endif %} | {% if navPage.getIsPublished == 1 %}Publiée{% else %}Non Publiée{% endif %}
+                                            </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Checkbox for publishing the created navigation -->
+                            <div class="col-12">                            
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="toPublishId" name="toPublish">
+                                    <label class="form-check-label" for="toPublishId">
+                                        Publier la navigation créée
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Submit button -->
+                            <div class="col-12">
+                                <button class="btn btn-secondary" type="submit">Créer</button>
+                            </div>
+                        </form>  
+                    </div>
+                {% endif %}              
+
+            </div>
+        {% endif %}
+
+    </div>    
+{% endblock %}

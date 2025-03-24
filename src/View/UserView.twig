@@ -1,0 +1,164 @@
+{% extends "Base.twig" %}
+
+{% block main %}
+    <!-- Main content section -->
+    <div class="container-fluid text-center">
+
+        <!-- Admin panel title -->
+        <div class="row">
+            <div class="col-12 h2 p-5">
+                Panneau d'administration
+            </div>
+        </div>
+
+        <!-- List of users and user modification form -->
+        {% if listUsers is defined %}
+        
+            <div class="row text-start mt-3">
+                <!-- User list column -->
+                <div class="col-4 p-2">
+                    <h5 class="p-2">Liste des utilisateurs</h5>
+                    
+                    <!-- List of users -->
+                    <ul class="list-group">
+                        {% for user in listUsers %}
+                            {% set isSelected = (selectedUser is defined and selectedUser.id == user.id) %}
+                            <li class="list-group-item {% if isSelected %} selected{% endif %}"><a class="link-dark link-underline-opacity-0 link-underline-opacity-75-hover" href="index.php?controller=user&action=updateUser&userId={{ user.id }}">{{ user.login }}</a></li>
+                        {% endfor %}
+                        <!-- Add user link -->
+                        {% if createUser is defined %}
+                            {% set isSelected = true %}
+                        {% endif %}
+                        <li class="list-group-item {% if isSelected %} selected {% else %} bg-body-tertiary {% endif %}"><a class="link-dark link-underline-opacity-0 link-underline-opacity-75-hover" href="index.php?controller=user&action=createUser">Ajouter un utilisateur</a></li>
+                    </ul>
+                </div>                  
+
+                <!-- User modification form column -->
+                {% if selectedUser is defined %}
+                    <div class="col-6 p-2">
+                        <h5 class="p-2">Modifier {{ selectedUser.getLogin }}</h5>
+                        <!-- Display success or error message if defined -->
+                        {% if message is defined %}                        
+                        <div class="alert alert-{{ message.type }} alert-dismissible fade show" role="alert">
+                            {{ message.message }}
+                        </div>                        
+                        {% endif %}
+                        <!-- User modification form -->
+                        <form class="row ps-2 g-3" action="index.php" method="post">
+                            <!-- Set action for user update -->
+                            {% if selectedUser.getId is defined %}
+                                {% set action = 'updateUserValid' %}
+                                <input type="hidden" value="{{ selectedUser.getId }}" name="userId">
+                            {% endif %}
+                            <!-- Input fields for user login, password, and access right -->
+                            <input type="hidden" value="user" name="controller">
+                            <input type="hidden" value="{{ action }}" name="action">
+                            <div class="col-md-6">
+                                <label for="loginId" class="form-label">Login</label>
+                                <input type="text" class="form-control" id="loginId" name="login" value="{{ selectedUser.getLogin }}" required>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="rightId" class="form-label">Droit d'accès</label>
+                                <select class="form-select" id="rightId" name="right" required>
+                                    <!-- Loop through access rights -->
+                                    {% for right in listRights %}
+                                            <option value="{{ right.id }}" {% if selectedUser.idRight == right.id %} selected {% endif %}>
+                                                {{ right.rightName }}
+                                            </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <!-- Input fields for password and password confirmation -->
+                            <div class="col-md-10">
+                                <label for="passwordId" class="form-label">
+                                    Mot de passe </br>
+                                    <!-- Password requirements -->
+                                    <small class="text-secondary fst-italic mb-1">Doit contenir au moins 8 caractères dont au moins 1 lettre, 1 chiffre et 1 caractère spécial (!@#$%^&*(),.?":{}|<>)</small>
+                                </label>                             
+                                <input type="password" class="form-control" id="passwordId" name="password" value="" required>
+                            </div>
+                            <div class="col-md-10 mt-1">
+                                <label for="passwordConfirmId" class="form-label">Confirmation mot de passe</label>                             
+                                <input type="password" class="form-control" id="passwordConfirmId" name="passwordConfirm" value="" required>
+                            </div>
+                            <!-- Submit button -->                   
+                            <div class="col-12">
+                                <button class="btn btn-secondary" type="submit">Modifier</button>
+                            </div>
+                        </form>
+                        <!-- Form to delete user -->
+                        <form class="row p-2 g-3" action="index.php" method="post">
+                            <!-- Hidden input fields for controller, action, and user id -->
+                            <input type="hidden" value="user" name="controller">
+                            <input type="hidden" value="deleteUser" name="action">
+                            <input type="hidden" value="{{ selectedUser.getId }}" name="id">
+                            <!-- Button to submit the form with a confirmation prompt -->
+                            <div class="col-12">
+                                <button class="btn btn-danger" type="submit" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')">Supprimer</button>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+
+                {% if createUser is defined %}
+                    <!-- Form to add a new user -->
+                    <div class="col-6 p-2">
+                        <!-- Title for the form -->
+                        <h5 class="p-2">Ajouter un utilisateur</h5>
+                        <!-- Alert message if defined -->
+                        {% if message is defined %}                        
+                        <div class="alert alert-{{ message.type }} alert-dismissible fade show" role="alert">
+                            {{ message.message }}
+                        </div>                        
+                        {% endif %}
+                        <!-- User creation form -->
+                        <form class="row ps-2 g-3" action="index.php" method="post">                            
+                            {% set action = 'createUserValid' %}
+                            <!-- Hidden input fields for controller and action -->                            
+                            <input type="hidden" value="user" name="controller">
+                            <input type="hidden" value="{{ action }}" name="action">
+                            <!-- Input field for user login -->
+                            <div class="col-md-6">
+                                <label for="loginId" class="form-label">Login</label>
+                                <input type="text" class="form-control" id="loginId" name="login" value="" required>
+                            </div>
+                            <!-- Dropdown menu for user rights -->
+                            <div class="col-md-4">
+                                <label for="rightId" class="form-label">Droit d'accès</label>
+                                <select class="form-select" id="rightId" name="right" required>
+                                    {% for right in listRights %}
+                                            <option value="{{ right.id }}">
+                                                {{ right.rightName }}
+                                            </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <!-- Input field for password -->
+                            <div class="col-md-10">
+                                <label for="passwordId" class="form-label">
+                                    Mot de passe </br>
+                                    <!-- Password requirements -->
+                                    <small class="text-secondary fst-italic mb-1">Doit contenir au moins 8 caractères dont au moins 1 lettre, 1 chiffre et 1 caractère spécial (!@#$%^&*(),.?":{}|<>)</small>
+                                </label>                             
+                                <input type="password" class="form-control" id="passwordId" name="password" value="" required>
+                            </div>
+                            <!-- Input field for password confirmation -->
+                            <div class="col-md-10 mt-1">
+                                <label for="passwordConfirmId" class="form-label">Confirmation mot de passe</label>                             
+                                <input type="password" class="form-control" id="passwordConfirmId" name="passwordConfirm" value="" required>
+                            </div>
+                            <!-- Submit button -->                        
+                            <div class="col-12">
+                                <button class="btn btn-secondary" type="submit">Ajouter</button>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+                
+
+            </div>  
+        {% endif %}
+
+    </div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "Base.twig" %}
+
+{% block main %}
+    <!-- Main content container -->
+    <div class="container-fluid text-center">
+        <!-- Section title -->
+        <div class="row">
+            <div class="col-12">
+                <h2 class="m-5">Tableau de bord</h2>
+            </div>
+        </div>
+
+        <!-- Dashboard cards -->
+        <div class="row justify-content-evenly">
+            <!-- Card to view website -->
+            <div class="col-sm-12 col-md-6 col-lg-4 d-flex justify-content-center">
+                <div class="card m-5" style="width: 100%; max-width: 24rem;">
+                    <img src="assets/images/background-image-viewsite.jpg" class="card-img-top" alt="Backgroung Picture - View your website" style="height: 18rem; object-fit: cover;">
+                    <div class="card-body bg-success-subtle">
+                        <h4 class="p-2 py-4"><a class=" link-dark link-underline-opacity-0 link-underline-opacity-75-hover" href="index.php?controller=website">Visualiser votre site web</a></h4>
+                    </div>
+                </div>
+            </div>
+            <!-- Card to edit pages and contents -->
+            <div class="col-sm-12 col-md-6 col-lg-4 d-flex justify-content-center">
+                <div class="card m-5" style="width: 100%; max-width: 24rem;">
+                    <img src="assets/images/background-image-editweb.jpg" class="card-img-top" alt="Backgroung Picture - Edit pages and contents" style="height: 18rem; object-fit: cover;">
+                    <div class="card-body bg-warning-subtle">
+                        <h4 class="p-2 py-4"><a class=" link-dark link-underline-opacity-0 link-underline-opacity-75-hover" href="index.php?controller=edit">Éditer les pages et contenus</a></h4>
+                    </div>
+                </div>
+            </div>
+            <!-- Card to manage users (only shown for admin users) -->
+            {% if session.userIdRight == 1 %}
+            <div class="col-sm-12 col-md-6 col-lg-4 d-flex justify-content-center">
+                <div class="card m-5" style="width: 100%; max-width: 24rem;">
+                    <img src="assets/images/backgroung-picture-admin.jpg" class="card-img-top" alt="Backgroung Picture - Edit pages and contents" style="height: 18rem; object-fit: cover;">
+                    <div class="card-body bg-danger-subtle">
+                        <h4 class="p-2 py-4"><a class=" link-dark link-underline-opacity-0 link-underline-opacity-75-hover" href="index.php?controller=user">Gérer les utilisateurs</a></h4>
+                    </div>
+                </div>
+            </div>
+            {% endif %}   
+        </div>
+    </div>
+
+{% endblock %}

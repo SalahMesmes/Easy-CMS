@@ -1,0 +1,80 @@
+
+<html lang="en">
+<head>
+    <!-- Meta tags for character set and viewport -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- Bootstrap JavaScript with defer attribute for asynchronous loading -->
+    <script type="module" src="assets/js/bootstrap.min.js" defer></script>
+
+    <!-- Page title -->
+    <title>Easy CMS</title>
+</head>
+<body>
+    <!-- Header section -->
+    <header>
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+            <div class="container-fluid">
+                <!-- Navbar Brand -->
+                <a class="navbar-brand" href="index.php?controller=index">Easy CMS</a>
+                
+                <!-- Navbar Toggler -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Navbar Links -->
+                <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    {% if session.userId is defined %}
+                        <!-- If user is logged in -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.php?controller=profile"><strong>Tableau de bord</strong></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.php?controller=index&action=logout">Se déconnecter</a>
+                        </li>
+                    {% else %}
+                        <!-- If user is not logged in -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.php?controller=index&action=login">Se connecter</a>
+                        </li>
+                        <li class="nav-item">
+                         <a class="nav-link" href="index.php?controller=index&action=register">S'inscrire</a>
+                        </li>
+                    {% endif %}
+                     
+                </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main content section -->
+    <main class="container-fluid">
+        <div class="row">
+            <div class="col-12 p-0">
+                <!-- Main content block -->
+                {% block main %}
+                
+                {% endblock %}
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer section -->
+   <footer class="text-center mt-4">
+        <p>&copy; {{ "now"|date("Y") }} Easy CMS</p>
+    </footer>
+
+</body>
+
+</html>

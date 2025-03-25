@@ -69,6 +69,6 @@ Ce projet a été réalisé individuellement dans le cadre pédagogique.
 
 ## Auteur 
 
-Beatriz Moura - Développement initial | @BeaMoura0906
+MESTAOUI SALAH EDDINE - Développement initial 
 
 Ce projet a été réalisé en cours de formation dans le cadre d'un BTS SIO option SLAM (2ème année).

@@ -13,6 +13,7 @@ abstract class Controller
 {
     protected $twig; 
     protected $pathView = 'src/View';
+    
 
     /**
      * Constructor method to set up the Twig environment and process the action.
@@ -28,6 +29,7 @@ abstract class Controller
         $this->twig->addExtension(new DebugExtension());
 
         if ( isset($_REQUEST['action']) ) {
+            error_log('Action demandée : ' . $_REQUEST['action']);//
             $action = $_REQUEST['action'] . 'Action';
             $this->$action();
 
@@ -41,6 +43,8 @@ abstract class Controller
      * Abstract method to be implemented by classes extending this Controller.
      */
     abstract public function defaultAction();
+    
+    
 
     /**
      * Renders the specified view using Twig and the provided data.
@@ -60,5 +64,6 @@ abstract class Controller
         }
         
     }
+    
 
 }

@@ -22,18 +22,21 @@ class WebsiteManager extends Manager
      * @return Page|null The Page object representing the published home page, or null if not found or an error occurs.
      */
     public function getPublishedHomePage()
-    {        
-        $sql = "SELECT * FROM pages WHERE is_home_page = 1 AND is_published = 1";
-        $req = $this->dbManager->db->prepare( $sql );
-        if( $req->execute()){
-            $pageData = $req->fetch( \PDO::FETCH_ASSOC );
-            $page = new Page($pageData);           
-            return $page;
-        } else {
+{        
+    $sql = "SELECT * FROM pages WHERE is_home_page = 1 AND is_published = 1";
+    $req = $this->dbManager->db->prepare($sql);
+    if ($req->execute()) {
+        $pageData = $req->fetch(\PDO::FETCH_ASSOC);
+        if ($pageData === false) {
+            // Aucun résultat trouvé, retourner null
             return null;
         }
+        $page = new Page($pageData);           
+        return $page;
+    } else {
+        return null;
     }
-
+}
     /**
      * Retrieve all published contents associated with a specific page from the database.
      *

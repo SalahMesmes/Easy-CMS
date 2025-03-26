@@ -60,9 +60,9 @@ class Manager
             $this->dblogin = getenv('DB_LOGIN');
             $this->dbpassword = getenv('DB_PASSWORD');
         } else {
-            $this->dbname = 'easycms';
-            $this->dblogin = 'root';
-            $this->dbpassword = '';
+            $this->dbname = 'salah_db1';
+            $this->dblogin = 'salah_db1';
+            $this->dbpassword = 'Salahmesmes123@';
         }
 
         // Build DSN for the database connection

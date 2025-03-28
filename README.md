@@ -51,7 +51,7 @@ Pour déployer Easy CMS sur un serveur distant, vous devrez :
 
 ## Auteurs
 
-- Beatriz Moura | BeaMoura0906
+- Mestaoui salah eddine
 
 Ce projet a été réalisé individuellement dans le cadre pédagogique.
 
